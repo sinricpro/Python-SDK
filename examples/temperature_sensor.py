@@ -1,10 +1,11 @@
+from typing import Any, Final
 from sinric import SinricPro, SinricProConstants
 import asyncio
 from asyncio import sleep
 
-APP_KEY = ''
-APP_SECRET = ''
-TEMPERATURE_SENSOR_ID = ''
+APP_KEY: Final[str] = ''
+APP_SECRET: Final[str] = ''
+TEMPERATURE_SENSOR_ID: Final[str] = ''
 
 
 async def events():
@@ -17,7 +18,7 @@ async def events():
         # Server will trottle / block IPs sending events too often.
         await sleep(60)
 
-callbacks = {}
+callbacks: dict[str, Any] = {}
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()

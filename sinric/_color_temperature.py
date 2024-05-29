@@ -6,17 +6,22 @@
 """
 
 
-class ColorTemperatureController:
-    def __init__(self, temperatures_index, temperatures_array):
-        self.temperatures_index = temperatures_index
-        self.temperatures_array = temperatures_array
+from collections.abc import Callable
+from numbers import Real
+from typing import Any
 
-    async def set_color_temperature(self, jsn, set_callback):
+
+class ColorTemperatureController:
+    def __init__(self, temperatures_index: Real, temperatures_array: list[Real]) -> None:
+        self.temperatures_index: Real = temperatures_index
+        self.temperatures_array: list[Real] = temperatures_array
+
+    async def set_color_temperature(self, jsn: Any, set_callback: Callable[[str, Real], bool]) -> bool:
         return set_callback(jsn.get("payload").get("deviceId"),
                             jsn.get("payload").get("value").get("colorTemperature"))
 
-    async def increase_color_temperature(self, jsn, increase_callback):
+    async def increase_color_temperature(self, jsn: Any, increase_callback: Callable[[str, Real], tuple[bool, Real]]) -> tuple[bool, Real]:
         return increase_callback(jsn.get("payload").get("deviceId"), jsn.get("payload").get("value"))
 
-    async def decrease_color_temperature(self, jsn, decrease_callback):
+    async def decrease_color_temperature(self, jsn: Any, decrease_callback: Callable[[str, Real], tuple[bool, Real]]) -> tuple[bool, Real]:
         return decrease_callback(jsn.get("payload").get("deviceId"), jsn.get("payload").get("value"))

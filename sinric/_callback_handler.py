@@ -5,27 +5,34 @@
  *  This file is part of the Sinric Pro (https://github.com/sinricpro/)
 """
 
-from re import X
+from collections.abc import Callable
+import hmac as sinricHmac
 from json import dumps
+from re import X
 from time import time
+from typing import Any, Final, NoReturn, Optional
 from uuid import uuid4
 
-from ._power_controller import PowerController
+import loguru
+from websockets import client
+
 from ._brightness_controller import BrightnessController
-from ._power_level_controller import PowerLevelController
+from ._camera_stream_controller import CameraStreamController
 from ._color_controller import ColorController
 from ._color_temperature import ColorTemperatureController
-from ._thermostat_controller import ThermostateMode
-from ._range_value_controller import RangeValueController
-from ._temperature_controller import TemperatureController
-from ._tv_contorller import TvController
-from ._speaker_controller import SpeakerController
-from ._mode_controller import ModeController
-from ._camera_stream_controller import CameraStreamController
-from ._lock_controller import LockStateController
-from ._signature import Signature
 from ._leaky_bucket import LeakyBucket
+from ._lock_controller import LockStateController
+from ._mode_controller import ModeController
+from ._power_controller import PowerController
+from ._power_level_controller import PowerLevelController
+from ._range_value_controller import RangeValueController
+from ._signature import Signature
 from ._sinricpro_constants import SinricProConstants
+from ._speaker_controller import SpeakerController
+from ._temperature_controller import TemperatureController
+from ._thermostat_controller import ThermostateMode
+from ._tv_contorller import TvController
+from ._types import SinricProTypes
 
 # noinspection PyBroadException
 
@@ -33,11 +40,11 @@ from ._sinricpro_constants import SinricProConstants
 class CallBackHandler(PowerLevelController, PowerController, BrightnessController, ColorController, ColorTemperatureController,
                       ThermostateMode, RangeValueController, TemperatureController, TvController, SpeakerController,
                       LockStateController, ModeController, CameraStreamController, Signature):
-    def __init__(self, callbacks, trace_bool, logger, enable_track=False, secret_key=""):
-        self.myHmac = None
-        self.secret_key = secret_key
-        self.bucket = LeakyBucket(10, 1000, 60000)
-        self.enable_track = enable_track
+    def __init__(self, callbacks: SinricProTypes.RequestCallbacks, trace_bool: bool, logger: loguru.Logger, enable_track: bool = False, secret_key: str = ""):
+        self.myHmac: Optional[sinricHmac.HMAC] = None
+        self.secret_key: Final[str] = secret_key
+        self.bucket: Final[LeakyBucket] = LeakyBucket(10, 1000, 60000)
+        self.enable_track: bool = enable_track
 
         PowerLevelController.__init__(self, 0)
         BrightnessController.__init__(self, 0)
@@ -55,16 +62,19 @@ class CallBackHandler(PowerLevelController, PowerController, BrightnessControlle
             self, 0, [2200, 2700, 4000, 5500, 7000])
         CameraStreamController.__init__(self)
 
-        self.callbacks = callbacks
-        self.logger = logger
-        self.trace_response = trace_bool
+        self.callbacks: SinricProTypes.RequestCallbacks = callbacks
+        self.logger: loguru.Logger = logger
+        self.trace_response: bool = trace_bool
 
-    async def handle_callbacks(self, data_array, connection, udp_client):
+    async def handle_callbacks(self, data_array: list[Any], connection: client.Connect, udp_client):
         jsn = data_array[0]
         response_cmd = data_array[1]
         message_type = data_array[2]
+        # TODO check this in python39
+        handleResponseType: Callable[[dict, client.Connect, Any], NoReturn]
 
-        async def handle_response(response, connection, udp_client):
+        async def handle_response(response: dict, connection: client.Connect, udp_client) -> NoReturn:
+            # TODO What are types for connection and udp clinet?
             if self.trace_response:
                 self.logger.info(f"Response : {dumps(response)}")
             if response_cmd == 'socket_response':
@@ -73,7 +83,8 @@ class CallBackHandler(PowerLevelController, PowerController, BrightnessControlle
                 udp_client.sendResponse(
                     dumps(response).encode('ascii'), data_array[2])
 
-        def json_response(action, resp, data_dict, instance_id='') -> dict:
+        def json_response(action: SinricProConstants, resp: bool, data_dict: dict[str, Any], instance_id='') -> dict:
+            # TODO Define a json response type
             header = {
                 "payloadVersion": 2,
                 "signatureVersion": 1

@@ -1,10 +1,11 @@
+from typing import Final
 from sinric import SinricPro, SinricProConstants
 import asyncio
 from asyncio import sleep
 
-APP_KEY = ''
-APP_SECRET = ''
-DEVICE_ID = ''
+APP_KEY: Final[str] = ''
+APP_SECRET: Final[str] = ''
+DEVICE_ID: Final[str] = ''
 
 
 async def events():

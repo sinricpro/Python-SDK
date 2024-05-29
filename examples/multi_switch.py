@@ -1,13 +1,18 @@
+from collections.abc import Callable
+from typing import Final
 from sinric import SinricPro, SinricProConstants
 import asyncio
 
-APP_KEY = ''
-APP_SECRET = ''
-SWITCH_ID_1 = ''
-SWITCH_ID_2 = ''
+APP_KEY: Final[str] = ''
+APP_SECRET: Final[str] = ''
+SWITCH_ID_1: Final[str] = ''
+SWITCH_ID_2: Final[str] = ''
+
+CallbackFunctions = Callable[[str, str], tuple[bool, str]]  # Power state
 
 
-def power_state(device_id, state):
+def power_state(device_id: str, state: str) -> tuple[bool, str]:
+    # TODO state should be enum
     if device_id == SWITCH_ID_1:
         print('device_id: {} state: {}'.format(device_id, state))
     elif device_id == SWITCH_ID_2:
@@ -18,7 +23,7 @@ def power_state(device_id, state):
     return True, state
 
 
-callbacks = {
+callbacks: dict[str, CallbackFunctions] = {
     SinricProConstants.SET_POWER_STATE: power_state
 }
 

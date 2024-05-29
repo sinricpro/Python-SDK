@@ -6,10 +6,15 @@
 """
 
 
+from collections.abc import Callable
+
+
 class ColorController:
 
-    async def set_color(self, jsn, set_color_callback):
+    async def set_color(self, jsn, set_color_callback: Callable[[str, int, int, int], bool]) -> bool:
         return set_color_callback(jsn.get("payload").get("deviceId"),
-                                  jsn.get("payload").get("value").get("color").get("r"),
-                                  jsn.get("payload").get("value").get("color").get("g"),
+                                  jsn.get("payload").get(
+                                      "value").get("color").get("r"),
+                                  jsn.get("payload").get(
+                                      "value").get("color").get("g"),
                                   jsn.get("payload").get("value").get("color").get("b"))

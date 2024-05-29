@@ -8,5 +8,6 @@
 from ._sinricpro import SinricPro
 from ._sinricpro_udp import SinricProUdp
 from ._events import Events
-from . import Events 
+from . import Events
 from ._sinricpro_constants import SinricProConstants
+from ._types import SinricProTypes
